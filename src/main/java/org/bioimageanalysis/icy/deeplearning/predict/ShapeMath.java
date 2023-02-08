@@ -13,14 +13,14 @@ public class ShapeMath
 	// https://github.com/bioimage-io/spec-bioimage-io/blob/gh-pages/model_spec_latest.md
 	// https://github.com/bioimage-io/core-bioimage-io-python/blob/main/bioimageio/core/build_spec/build_model.py
 
-	private int n;
-	private int[] inputMinDimensions;
-	private int[] inputSteps;
-	private int[] outputHalos;
-	private int[] offsets;
-	private double[] scales;
+	private final int n;
+	private final int[] inputMinDimensions;
+	private final int[] inputSteps;
+	private final int[] outputHalos;
+	private final int[] offsets;
+	private final double[] scales;
 
-	public ShapeMath( ModelSpec modelSpec )
+	public ShapeMath( final ModelSpec modelSpec )
 	{
 		n = modelSpec.inputShapeMin.length;
 
@@ -37,7 +37,7 @@ public class ShapeMath
 		inputSteps = modelSpec.inputShapeStep;
 	}
 
-	public long[] getOutputDimensions( long[] inputDimensions )
+	public long[] getOutputDimensions( final long[] inputDimensions )
 	{
 		final long[] outputDimensions = new long[ n ];
 		for ( int d = 0; d < n; d++ )
@@ -46,7 +46,7 @@ public class ShapeMath
 		return outputDimensions;
 	}
 
-	public Interval getOutputInterval( Interval inputInterval )
+	public Interval getOutputInterval( final Interval inputInterval )
 	{
 		final long[] inputDimensions = inputInterval.dimensionsAsLongArray();
 		final long[] outputDimensions = getOutputDimensions( inputDimensions );
@@ -58,14 +58,14 @@ public class ShapeMath
 		return FinalInterval.createMinSize( min, outputDimensions );
 	}
 
-	public Interval addOutputHalo( Interval outputInterval )
+	public Interval addOutputHalo( final Interval outputInterval )
 	{
 		final long[] border = Arrays.stream( outputHalos )
 				.mapToLong( halo -> ( long ) halo ).toArray();
 		return Intervals.expand( outputInterval, border );
 	}
 
-	public Interval removeOutputHalo( Interval outputInterval )
+	public Interval removeOutputHalo( final Interval outputInterval )
 	{
 		final long[] border = Arrays.stream( outputHalos )
 				.mapToLong( halo -> ( long ) -halo ).toArray();
@@ -82,7 +82,7 @@ public class ShapeMath
 	 * @param outputInterval
 	 * @return
 	 */
-	public FinalInterval getInputInterval( Interval outputInterval )
+	public FinalInterval getInputInterval( final Interval outputInterval )
 	{
 		final long[] outputCellDimensions = outputInterval.dimensionsAsLongArray();
 
@@ -105,7 +105,7 @@ public class ShapeMath
 		return FinalInterval.createMinSize( min, dimensions );
 	}
 
-	public Interval expandToValidInputInterval( Interval inputInterval )
+	public Interval expandToValidInputInterval( final Interval inputInterval )
 	{
 		final long[] inputCellDimensions = inputInterval.dimensionsAsLongArray();
 
@@ -116,6 +116,10 @@ public class ShapeMath
 			if ( inputCellDimensions[ d ] < inputMinDimensions[ d ] )
 			{
 				dimensions[ d ] = inputMinDimensions[ d ];
+			}
+			else if ( inputSteps[ d ] == 0 )
+			{
+				dimensions[ d ] = inputCellDimensions[ d ];
 			}
 			else
 			{
@@ -136,7 +140,7 @@ public class ShapeMath
 	 * @return
 	 * 			interval that the model can consume, such that the model output will include the given {@code outputInterval}
 	 */
-	public Interval getValidInputInterval( Interval outputInterval )
+	public Interval getValidInputInterval( final Interval outputInterval )
 	{
 		return expandToValidInputInterval( getInputInterval( outputInterval ) );
 	}
