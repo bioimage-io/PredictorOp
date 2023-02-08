@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>org.scijava</groupId>
+		<artifactId>pom-scijava</artifactId>
+		<version>33.2.0</version>
+		<relativePath />
+	</parent>
+	
+	<groupId>org.bioimageanalysis.icy</groupId>
+	<artifactId>PredictorOp</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	
+	<name>PredictorOp</name>
+	<description>Model runner demo for ImgLib2 consumers.</description>
+	<url>https://github.com/bioimage-io/PredictorOp</url> 
+	<inceptionYear>2023</inceptionYear>
+	<organization>
+		<name>BioImage.io</name>
+		<url>https://bioimage.io/</url>
+	</organization>
+	<licenses>
+		<license>
+			<name>BSD-3-Clause</name>
+			<url>https://opensource.org/licenses/BSD-3-Clause</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<developers>
+		<developer>
+			<id>carlosuc3m</id>
+			<name>Carlos Javier Garcia Lopez de Haro</name>
+			<url>https://github.com/carlosuc3m</url>
+			<roles>
+				<role>developer</role>
+				<role>debugger</role>
+				<role>reviewer</role>
+				<role>support</role>
+				<role>maintainer</role>
+			</roles>
+		</developer>
+		<developer>
+			<id>tinevez</id>
+			<name>Jean-Yves Tinevez</name>
+			<url>https://github.com/tinevez</url>
+			<roles>
+				<role>developer</role>
+				<role>debugger</role>
+				<role>reviewer</role>
+				<role>support</role>
+				<role>maintainer</role>
+			</roles>
+		</developer>
+	</developers>
+	<contributors>
+		<contributor>
+			<properties><id>carlosuc3m</id></properties>
+			<name>Carlos Javier Garcia Lopez de Haro</name>
+			<url>https://github.com/carlosuc3m</url>
+		</contributor>
+	</contributors>
+
+	<mailingLists>
+		<mailingList>
+			<name>Image.sc Forum</name>
+			<archive>https://forum.image.sc/tag/bioimage-io</archive>
+		</mailingList>
+	</mailingLists>
+
+	<scm>
+		<connection>scm:git:https://github.com/bioimage-io/PredictorOp</connection>
+		<developerConnection>scm:git:git@github.com:bioimage-io/PredictorOp</developerConnection>
+		<tag>HEAD</tag>
+		<url>https://github.com/bioimage-io/PredictorOp</url>
+	</scm>
+	<issueManagement>
+		<system>GitHub Issues</system>
+		<url>https://github.com/bioimage-io/PredictorOp/issues</url>
+	</issueManagement>
+	<ciManagement>
+		<system>None</system>
+	</ciManagement>
+
+	<properties>
+		<package-name>io.bioimage.predictorop</package-name>
+		<license.licenseName>bsd_3</license.licenseName>
+		<license.copyrightOwners>Institut Pasteur and BioImage.IO developers.</license.copyrightOwners>
+		<license.excludes>**/*.json</license.excludes>
+
+		<!-- NB: Deploy releases to the SciJava Maven repository. -->
+		<releaseProfiles>sign,deploy-to-scijava</releaseProfiles>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.bioimageanalysis.icy</groupId>
+			<artifactId>dl-model-runner</artifactId>
+			<version>0.0.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.yaml</groupId>
+			<artifactId>snakeyaml</artifactId>
+		</dependency>		
+	</dependencies>
+</project>

@@ -1,0 +1,10 @@
+/engines/
+/models/
+
+# maven specific files
+/target/
+
+# eclipse specific files
+/.settings/
+.classpath
+.project
