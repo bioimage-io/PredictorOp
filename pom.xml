@@ -8,14 +8,14 @@
 		<version>33.2.0</version>
 		<relativePath />
 	</parent>
-	
+
 	<groupId>org.bioimageanalysis.icy</groupId>
 	<artifactId>PredictorOp</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	
+
 	<name>PredictorOp</name>
 	<description>Model runner demo for ImgLib2 consumers.</description>
-	<url>https://github.com/bioimage-io/PredictorOp</url> 
+	<url>https://github.com/bioimage-io/PredictorOp</url>
 	<inceptionYear>2023</inceptionYear>
 	<organization>
 		<name>BioImage.io</name>
@@ -57,7 +57,9 @@
 	</developers>
 	<contributors>
 		<contributor>
-			<properties><id>carlosuc3m</id></properties>
+			<properties>
+				<id>carlosuc3m</id>
+			</properties>
 			<name>Carlos Javier Garcia Lopez de Haro</name>
 			<url>https://github.com/carlosuc3m</url>
 		</contributor>
@@ -96,13 +98,24 @@
 
 	<dependencies>
 		<dependency>
+		
+			<!-- Deal with DL models. Later: update to recent version. -->
 			<groupId>org.bioimageanalysis.icy</groupId>
 			<artifactId>dl-model-runner</artifactId>
 			<version>0.0.1</version>
 		</dependency>
+		
+		<!-- Used to parse the RDF model file. -->
 		<dependency>
 			<groupId>org.yaml</groupId>
 			<artifactId>snakeyaml</artifactId>
-		</dependency>		
+		</dependency>
+
+		<!-- For the demo: load a TIF file and wrap it as a ImgLib2 RAI. -->
+		<dependency>
+			<groupId>net.imglib2</groupId>
+			<artifactId>imglib2-ij</artifactId>
+		</dependency>
+
 	</dependencies>
 </project>
