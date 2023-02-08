@@ -102,9 +102,11 @@ public class AxesMatcher
 		}
 
 		@Override
-		public < T > RandomAccessibleInterval< T > updateRAI( final RandomAccessibleInterval< T > desiredRAI )
+		public < T > RandomAccessibleInterval< T > updateRAI( final RandomAccessibleInterval< T > inputRAI )
 		{
-			throw new IllegalStateException( "The DimensionDropped change is not supposed to be used on the input RAI." );
+			// Default position is the min one.
+			final long pos = inputRAI.min( position );
+			return Views.hyperSlice( inputRAI, position, pos );
 		}
 
 		@Override
@@ -163,6 +165,27 @@ public class AxesMatcher
 	 * Adds dimensions and flip dimensions to a view of the specified RAI with
 	 * the specified input axes string, so that its dimensions matches the
 	 * desired axes string specified.
+	 * <p>
+	 * Missing dimensions are added, as singleton dimensions. Superfluous
+	 * dimensions are dropped by reslicing in the input image, at the position
+	 * of the minimum in that dimension. If the user wants another position,
+	 * it's their responsibility to slice the input themselves before calling
+	 * this method.
+	 * <p>
+	 * For instance, let's consider an input with axes 'xyzt' and dimensions [
+	 * 100 x 80 x 20 x 3 ]. If this method is called with a desired axes
+	 * 'bcxyz', the following will happen:
+	 * <ol>
+	 * <li>the 't' dimension in the input will be dropped by slicing the input
+	 * image at the position of the minimum t value.
+	 * <li>the 'b' dimension will be added to the input by adding a singleton
+	 * dimension.
+	 * <li>the 'c' dimension will be added to the input by adding a singleton
+	 * dimension.
+	 * <li>the'z' and 'x' dimension will be permuted.
+	 * </ol>
+	 * This will result in a view of the source image with size: [ 1 x 1 x 80 x
+	 * 100 x 20 ]
 	 * 
 	 * @param <T>
 	 *            the type of the pixel in the input RAI.
@@ -185,13 +208,13 @@ public class AxesMatcher
 		/*
 		 * Various checks.
 		 */
-		if (input.numDimensions() != inputAxes.length())
+		if ( input.numDimensions() != inputAxes.length() )
 			throw new IllegalArgumentException( "The input image has " + input.numDimensions() + " dimensions but the input axes specifications has " + inputAxes.length() + " characters." );
 		checkAuthorizedChars( desiredAxes );
 		checkAuthorizedChars( inputAxes );
 
 		final List< DimensionalityModification > sequence = new ArrayList<>();
-		
+
 		/*
 		 * Check dimensions to drop.
 		 */
@@ -240,12 +263,8 @@ public class AxesMatcher
 		 */
 		RandomAccessibleInterval< T > output = input;
 		for ( final DimensionalityModification change : sequence )
-		{
-			if ( change instanceof DimensionDropped ) // FIXME we should handle
-														// this.
-				continue; // Concerns the desired RAI, which we do not touch.
 			output = change.updateRAI( output );
-		}
+
 		return output;
 	}
 
@@ -258,9 +277,9 @@ public class AxesMatcher
 
 	public static void main( final String[] args )
 	{
-		final String inputAxes = "xyz";
+		final String inputAxes = "xyzt";
 		final String desiredAxes = "bczyx";
-		final RandomAccessibleInterval< UnsignedByteType > img = ArrayImgs.unsignedBytes( 100, 80, 20 );
+		final RandomAccessibleInterval< UnsignedByteType > img = ArrayImgs.unsignedBytes( 100, 80, 20, 3 );
 		System.out.println( img );
 		final RandomAccessibleInterval< UnsignedByteType > out = matchAxes( desiredAxes, inputAxes, img );
 		System.out.println( out );
