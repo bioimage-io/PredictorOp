@@ -137,7 +137,7 @@ public class AxesMatcher
 		@Override
 		public < T > RandomAccessibleInterval< T > updateRAI( final RandomAccessibleInterval< T > rai )
 		{
-			return Views.moveAxis( rai, from, to );
+			return Views.permute( rai, from, to );
 		}
 
 		@Override
@@ -259,7 +259,7 @@ public class AxesMatcher
 	public static void main( final String[] args )
 	{
 		final String inputAxes = "xyz";
-		final String desiredAxes = "bczyxt";
+		final String desiredAxes = "bczyx";
 		final RandomAccessibleInterval< UnsignedByteType > img = ArrayImgs.unsignedBytes( 100, 80, 20 );
 		System.out.println( img );
 		final RandomAccessibleInterval< UnsignedByteType > out = matchAxes( desiredAxes, inputAxes, img );
