@@ -77,7 +77,7 @@ public class ModelSpec
 	 * @return the type.
 	 */
 	@SuppressWarnings( "unchecked" )
-	public < T extends RealType< T > & NativeType< T > > T type()
+	public < T extends RealType< T > & NativeType< T > > T outputType()
 	{
 		switch ( outputDataType.trim().toLowerCase() )
 		{
