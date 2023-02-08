@@ -1,12 +1,21 @@
 package org.bioimageanalysis.icy.deeplearning.predict;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
 import org.bioimageanalysis.icy.deeplearning.model.Model;
+import org.bioimageanalysis.icy.deeplearning.tensor.Tensor;
 
 import net.imglib2.Interval;
 import net.imglib2.RandomAccessible;
 import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.converter.RealTypeConverters;
+import net.imglib2.type.NativeType;
+import net.imglib2.type.numeric.RealType;
+import net.imglib2.type.numeric.real.FloatType;
+import net.imglib2.view.IntervalView;
+import net.imglib2.view.Views;
 
 /**
  * 
@@ -15,57 +24,57 @@ import net.imglib2.RandomAccessibleInterval;
  * @param <I>
  *            the type of the pixels in the input.
  */
-public class PredictorOp< O, I > implements Consumer< RandomAccessibleInterval< O > >
+public class PredictorOp< I extends RealType< I > & NativeType< I >, O extends RealType< O > & NativeType< O > > implements Consumer< RandomAccessibleInterval< O > >
 {
 
 	private final Model model;
 
 	private final RandomAccessible< I > input;
 
-	public PredictorOp( final Model model, final RandomAccessible< I > input )
+	private final ShapeMath shapeMath;
+
+	private final ModelSpec spec;
+
+	public PredictorOp( final Model model, final RandomAccessible< I > input, final ModelSpec spec)
 	{
 		this.model = model;
 		this.input = input;
+		this.spec = spec;
+		this.shapeMath = new ShapeMath( spec );
 	}
 
 	@Override
-	public void accept( final RandomAccessibleInterval< O > outputCell )
+	public void accept( final RandomAccessibleInterval< O > cell )
 	{
-		predict( getInputInterval( outputCell ), outputCell );
+		// Inputs.
+		final Interval addOutputHalo = shapeMath.addOutputHalo( cell );
+		final Interval validInputInterval = shapeMath.getValidInputInterval( addOutputHalo );
+		final IntervalView< I > rai = Views.interval( input, validInputInterval );
+		final Tensor< I > inputTensor = Tensor.build( "input0", spec.inputAxes, rai );
+		final List< Tensor< ? > > inputs = new ArrayList<>();
+		inputs.add( inputTensor );
 
+		// Outputs.
+//		final Tensor< O > outputTensor = Tensor.build( "output0", spec.outputAxes, cell );
+		final Tensor< O > outputTensor = Tensor.buildEmptyTensor( "output0", spec.outputAxes );
+		final List< Tensor< ? > > outputs = new ArrayList<>();
+		outputs.add( outputTensor );
+
+		// Run the model.
+		try
+		{
+			model.runModel( inputs, outputs );
+			@SuppressWarnings( "unchecked" )
+			final
+			RandomAccessibleInterval< FloatType > output = ( RandomAccessibleInterval< FloatType > ) outputs.get( 0 ).getData();
+			// TODO Do dimension massaging with the matcher?
+
+			RealTypeConverters.copyFromTo( output, cell );
+		}
+		catch ( final Exception e )
+		{
+			e.printStackTrace();
+			throw new RuntimeException( e );
+		}
 	}
-
-	/**
-	 * Determines the size of an interval in the input source, that the model
-	 * needs to fill a buffer of size given the specified output interval.
-	 * 
-	 * @param outputInterval
-	 * @return
-	 */
-	public Interval getInputInterval( final Interval outputInterval )
-	{
-		return null; // TODO
-	}
-
-	/**
-	 * Runs the model on the input, in the specified input interval, and writes
-	 * the results in the specified output cell.
-	 * <p>
-	 * It's the caller responsibility to ensure that the input interval and the
-	 * output cell are of adequate size and origin for the model given at
-	 * construction.
-	 * 
-	 * @param inputInterval
-	 * @param outputCell
-	 */
-	public void predict( final Interval inputInterval, final RandomAccessible< O > outputCell )
-	{
-		// TODO
-	}
-
-	public static void main( final String[] args )
-	{
-
-	}
-
 }
