@@ -112,8 +112,6 @@ public class AxesMatcher
 		{
 			return "drop " + dim + " at " + position;
 		}
-
-
 	}
 
 	private static class DimensionFlip extends DimensionalityModification
@@ -157,7 +155,6 @@ public class AxesMatcher
 		{
 			return "flip " + dim.charAt( 0 ) + " and " + dim.charAt( 1 ) + " between " + from + " and " + to;
 		}
-
 	}
 
 	private static final String DIM_NAMES = "tbczyx";
@@ -210,12 +207,6 @@ public class AxesMatcher
 		}
 
 		/*
-		 * Flip axes to match imglib2 order.
-		 */
-//		inputAxes = new StringBuilder( inputAxes ).reverse().toString();
-//		desiredAxes = new StringBuilder( desiredAxes ).reverse().toString();
-
-		/*
 		 * Check missing dimensions from the input.
 		 */
 		for ( int i = 0; i < desiredAxes.length(); i++ )
@@ -250,7 +241,8 @@ public class AxesMatcher
 		RandomAccessibleInterval< T > output = input;
 		for ( final DimensionalityModification change : sequence )
 		{
-			if ( change instanceof DimensionDropped )
+			if ( change instanceof DimensionDropped ) // FIXME we should handle
+														// this.
 				continue; // Concerns the desired RAI, which we do not touch.
 			output = change.updateRAI( output );
 		}
