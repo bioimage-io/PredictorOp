@@ -9,18 +9,21 @@ import org.bioimageanalysis.icy.deeplearning.model.Model;
 import ij.IJ;
 import ij.ImagePlus;
 import net.imglib2.Interval;
+import net.imglib2.RandomAccessible;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.ImagePlusAdapter;
 import net.imglib2.img.Img;
 import net.imglib2.img.ImgFactory;
+import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.type.NativeType;
-import net.imglib2.type.numeric.NumericType;
+import net.imglib2.type.numeric.RealType;
 import net.imglib2.util.Util;
+import net.imglib2.view.Views;
 
 public class Demo
 {
 
-	public static < I extends NumericType< I > & NativeType< I >, O extends NumericType< O > & NativeType< O > > void main( final String[] args )
+	public static < I extends RealType< I > & NativeType< I >, O extends RealType< O > & NativeType< O > > void main( final String[] args )
 	{
 		try
 		{
@@ -49,7 +52,7 @@ public class Demo
 			/*
 			 * Reshape the input to match the specs.
 			 */
-			final RandomAccessibleInterval< I > input = AxesMatcher.matchAxes( spec.outputAxes, inputAxes, img );
+			final RandomAccessibleInterval< I > input = AxesMatcher.matchAxes( spec.inputAxes, inputAxes, img );
 			System.out.println( "Input reshaped: " + input );
 
 			/*
@@ -64,9 +67,13 @@ public class Demo
 			System.out.println( "Output holder prepared: " + output );
 
 			/*
-			 * Run the model on the input writing in the output image.
+			 * Input size requested.
 			 */
-
+			final RandomAccessible<I> extendedInput = Views.extendMirrorSingle( input );
+			final PredictorOp< I, O > op = new PredictorOp<>( model, extendedInput, spec );
+			op.accept( output );
+			
+			ImageJFunctions.show( output, "If this works...." );
 		}
 		catch ( final FileNotFoundException e )
 		{
