@@ -10,6 +10,14 @@ import java.util.Map;
 import org.bioimageanalysis.icy.deeplearning.model.Model;
 import org.yaml.snakeyaml.Yaml;
 
+import net.imglib2.type.NativeType;
+import net.imglib2.type.numeric.RealType;
+import net.imglib2.type.numeric.integer.ByteType;
+import net.imglib2.type.numeric.integer.ShortType;
+import net.imglib2.type.numeric.integer.UnsignedByteType;
+import net.imglib2.type.numeric.integer.UnsignedShortType;
+import net.imglib2.type.numeric.real.DoubleType;
+import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.util.Util;
 
 public class ModelSpec
@@ -59,6 +67,35 @@ public class ModelSpec
 		this.outputShapeOffset = outputShapeOffset;
 		this.outputShapeScale = outputShapeScale;
 		this.outputDataRange = outputDataRange;
+	}
+
+	/**
+	 * Returns an ImgLib2 type object matching the output pixel type.
+	 * 
+	 * @param <T>
+	 *            the type.
+	 * @return the type.
+	 */
+	@SuppressWarnings( "unchecked" )
+	public < T extends RealType< T > & NativeType< T > > T type()
+	{
+		switch ( outputDataType.trim().toLowerCase() )
+		{
+		case "uint8":
+			return ( T ) new UnsignedByteType();
+		case "int8":
+			return ( T ) new ByteType();
+		case "uint16":
+			return ( T ) new UnsignedShortType();
+		case "int16":
+			return ( T ) new ShortType();
+		case "float32":
+			return ( T ) new FloatType();
+		case "float64":
+			return ( T ) new DoubleType();
+		default:
+			throw new IllegalArgumentException( "Unknown output data type: " + outputDataType );
+		}
 	}
 
 	@Override
