@@ -157,7 +157,7 @@ public class AxesMatcher
 		}
 	}
 
-	private static final String DIM_NAMES = "tbczyx";
+	private static final String DIM_NAMES = "bitczyx";
 
 	/**
 	 * Adds dimensions and flip dimensions to a view of the specified RAI with
