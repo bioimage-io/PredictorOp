@@ -98,13 +98,13 @@
 
 	<dependencies>
 		<dependency>
-		
+
 			<!-- Deal with DL models. Later: update to recent version. -->
 			<groupId>org.bioimageanalysis.icy</groupId>
 			<artifactId>dl-model-runner</artifactId>
 			<version>0.0.1</version>
 		</dependency>
-		
+
 		<!-- Used to parse the RDF model file. -->
 		<dependency>
 			<groupId>org.yaml</groupId>
@@ -118,4 +118,11 @@
 		</dependency>
 
 	</dependencies>
+
+	<repositories>
+		<repository>
+			<id>icy</id>
+			<url>https://icy-nexus.pasteur.fr/repository/Icy/</url>
+		</repository>
+	</repositories>
 </project>
