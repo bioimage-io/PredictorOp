@@ -7,6 +7,7 @@ import org.bioimageanalysis.icy.deeplearning.engine.EngineInfo;
 import org.bioimageanalysis.icy.deeplearning.model.Model;
 
 import ij.IJ;
+import ij.ImageJ;
 import ij.ImagePlus;
 import net.imglib2.Interval;
 import net.imglib2.RandomAccessible;
@@ -27,6 +28,8 @@ public class Demo
 	{
 		try
 		{
+			ImageJ.main( args );
+
 			/*
 			 * Load the input image.
 			 */
@@ -36,12 +39,13 @@ public class Demo
 			// Could be determined from the input file.
 			final String inputAxes = "xyz";
 			System.out.println( "Image loaded: " + img + " with axes: " + inputAxes + " and type: " + img.firstElement().getClass().getSimpleName() );
+			imp.show();
 
 			/*
 			 * Load the model.
 			 */
 			final Model model = loadModel();
-			System.out.println( "Model loaded: " + model ); // DEBUG
+			System.out.println( "Model loaded: " + model );
 
 			/*
 			 * Load the specs.
@@ -63,24 +67,41 @@ public class Demo
 			@SuppressWarnings( "unchecked" )
 			final O outputType = ( O ) spec.outputType();
 			final ImgFactory< O > factory = Util.getArrayOrCellImgFactory( outputInterval, outputType );
-			final Img< O > output = factory.create( outputInterval );
+			RandomAccessibleInterval< O > output = factory.create( outputInterval );
 			System.out.println( "Output holder prepared: " + output );
 
 			/*
-			 * Input size requested.
+			 * Run the model.
 			 */
 			final RandomAccessible<I> extendedInput = Views.extendMirrorSingle( input );
 			final PredictorOp< I, O > op = new PredictorOp<>( model, extendedInput, spec );
+			System.out.println( "Running the model." ); 
+			final long start = System.currentTimeMillis();
 			op.accept( output );
+			final long end = System.currentTimeMillis();
+			System.out.println( String.format( "Done in %.1f s.", ( end - start ) / 1000. ) );
+
+			/*
+			 * Reshape the output. This should be done in a generic manner,
+			 * guessing automatically the desired shape of outputs based on on
+			 * the output axes string.
+			 */
+			output = Views.permute( output, 2, 4 );
+			output = Views.hyperSlice( output, 0, 0 );
+			final RandomAccessibleInterval< O > ch1 = Views.hyperSlice( output, 0, 0 );
+			final RandomAccessibleInterval< O > ch2 = Views.hyperSlice( output, 0, 1 );
 			
-			ImageJFunctions.show( output, "If this works...." );
+			final ImagePlus imp1 = ImageJFunctions.wrap( ch1, "Output 1" );
+			imp1.setDimensions( 1, imp1.getNChannels(), 1 );
+			imp1.show();
+			final ImagePlus imp2 = ImageJFunctions.wrap( ch2, "Output 2" );
+			imp2.setDimensions( 1, imp2.getNChannels(), 1 );
+			imp2.show();
 		}
 		catch ( final FileNotFoundException e )
 		{
 			e.printStackTrace();
 		}
-
-
 	}
 
 	private static Model loadModel()
