@@ -49,8 +49,11 @@ public class PredictorOp< I extends RealType< I > & NativeType< I >, O extends R
 		// Inputs.
 		final Interval addOutputHalo = shapeMath.addOutputHalo( cell );
 		final Interval validInputInterval = shapeMath.getValidInputInterval( addOutputHalo );
+
+
 		final IntervalView< I > rai = Views.interval( input, validInputInterval );
-		final Tensor< I > inputTensor = Tensor.build( "input0", spec.inputAxes, rai );
+		final RandomAccessibleInterval< FloatType > raiFloat = Tensor.createCopyOfRaiInWantedDataType( rai, new FloatType() );
+		final Tensor< FloatType > inputTensor = Tensor.build( "input0", spec.inputAxes, raiFloat );
 		final List< Tensor< ? > > inputs = new ArrayList<>();
 		inputs.add( inputTensor );
 
