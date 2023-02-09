@@ -71,8 +71,8 @@ public class DemoUsingModelCreator
 			/*
 			 * Specify a ROI in the input.
 			 */
-//			final Interval roi = img;
-			final Interval roi = Intervals.createMinMax( 50, 50, 10, 150, 150, 20 );
+			final Interval roi = img;
+//			final Interval roi = Intervals.createMinMax( 50, 50, 10, 150, 150, 20 );
 			imp.setRoi( new Roi( roi.min( 0 ), roi.min( 1 ), roi.dimension( 0 ), roi.dimension( 1 ) ) );
 			System.out.println( "Using a ROI specified in the input coordinate system: " + roi );
 			// Convert it to an output ROI.

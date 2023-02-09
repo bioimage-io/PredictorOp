@@ -97,8 +97,8 @@
 	</properties>
 
 	<dependencies>
-		<dependency>
 
+		<dependency>
 			<!-- Deal with DL models. Later: update to recent version. -->
 			<groupId>org.bioimageanalysis.icy</groupId>
 			<artifactId>dl-model-runner</artifactId>
@@ -115,6 +115,12 @@
 		<dependency>
 			<groupId>net.imglib2</groupId>
 			<artifactId>imglib2-ij</artifactId>
+		</dependency>
+
+		<!-- For the demo: look at RAIs. -->
+		<dependency>
+			<groupId>sc.fiji</groupId>
+			<artifactId>bigdataviewer-vistools</artifactId>
 		</dependency>
 
 	</dependencies>
