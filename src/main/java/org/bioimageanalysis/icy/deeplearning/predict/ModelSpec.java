@@ -196,19 +196,22 @@ public class ModelSpec
 			final Map< String, Object > out = ( Map< String, Object > ) obj;
 			return out;
 		}
-
 	}
 
-
-
-	public static ModelSpec from( final Model model ) throws FileNotFoundException
+	public static ModelSpec fromModel( final Model model ) throws FileNotFoundException
 	{
 		final String modelFolder = model.getModelFolder();
 		final File rdfFile = new File( modelFolder, MODEL_SPEC_FILENAME );
-		return from( rdfFile.getAbsolutePath() );
+		return fromFile( rdfFile.getAbsolutePath() );
 	}
 
-	public static ModelSpec from( final String rdfPath ) throws FileNotFoundException
+	public static ModelSpec fromFolder( final String modelFolder ) throws FileNotFoundException
+	{
+		final File rdfFile = new File( modelFolder, "rdf.yaml" );
+		return fromFile( rdfFile.getAbsolutePath() );
+	}
+
+	public static ModelSpec fromFile( final String rdfPath ) throws FileNotFoundException
 	{
 		final Yaml yaml = new Yaml();
 		final FileReader input = new FileReader( rdfPath );
@@ -300,8 +303,8 @@ public class ModelSpec
 
 	public static void main( final String[] args ) throws FileNotFoundException
 	{
-		final String rdfPath = "/Users/tinevez/Desktop/DemoModelRunner/platynereisemnucleisegmentationboundarymodel_torchscript/rdf.yaml";
-		final ModelSpec info = from( rdfPath );
+		final String rdfPath = "/Users/tinevez/Desktop/DemoModelRunner/platynereisemnucleisegmentationboundarymodel_torchscript/";
+		final ModelSpec info = fromFolder( rdfPath );
 		System.out.println( info );
 	}
 }

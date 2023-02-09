@@ -1,11 +1,5 @@
 package org.bioimageanalysis.icy.deeplearning.predict;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-
-import org.bioimageanalysis.icy.deeplearning.engine.EngineInfo;
-import org.bioimageanalysis.icy.deeplearning.model.Model;
-
 import ij.IJ;
 import ij.ImageJ;
 import ij.ImagePlus;
@@ -22,11 +16,26 @@ import net.imglib2.type.numeric.RealType;
 import net.imglib2.util.Intervals;
 import net.imglib2.util.Util;
 import net.imglib2.view.Views;
+import org.bioimageanalysis.icy.deeplearning.engine.EngineInfo;
+import org.bioimageanalysis.icy.deeplearning.model.Model;
 
-public class Demo
+import java.io.File;
+import java.io.FileNotFoundException;
+
+public class DemoUsingModelCreator
 {
+	// J-Y
+	public static final String MODEL_FOLDER = "/Users/tinevez/Desktop/DemoModelRunner/platynereisemnucleisegmentationboundarymodel_torchscript";
+	public static final String ENGINES_FOLDER = "/Users/tinevez/Development/Mastodon/model-runner-java/engines";
+	public static final String EXAMPLE_IMAGE = "/Users/tinevez/Desktop/DemoModelRunner/sample_input_0.tif";
 
-	public static < I extends RealType< I > & NativeType< I >, O extends RealType< O > & NativeType< O > > void main( final String[] args )
+	// TISCHI
+
+
+	// TOBY
+
+
+	public static < I extends RealType< I > & NativeType< I >, O extends RealType< O > & NativeType< O > > void main( final String[] args ) throws Exception
 	{
 		try
 		{
@@ -35,7 +44,7 @@ public class Demo
 			/*
 			 * Load the input image.
 			 */
-			final String imgPath = "/Users/tinevez/Desktop/DemoModelRunner/sample_input_0.tif";
+			final String imgPath = EXAMPLE_IMAGE;
 			final ImagePlus imp = IJ.openImage( imgPath );
 			final Img< I > img = ImagePlusAdapter.wrap( imp );
 			// Could be determined from the input file.
@@ -44,16 +53,25 @@ public class Demo
 			imp.show();
 
 			/*
-			 * Load the model.
+			 * Load the model specs.
 			 */
-			final Model model = loadModel();
-			System.out.println( "Model loaded: " + model );
+			final ModelSpec spec = ModelSpec.fromFolder( MODEL_FOLDER );
+			System.out.println( "Model specs loaded. Output axes: " + spec.outputAxes + " - Output data type: " + spec.outputType().getClass().getSimpleName() );
 
 			/*
-			 * Load the specs.
+			 * Create the model.
 			 */
-			final ModelSpec spec = ModelSpec.fromModel( model );
-			System.out.println( "Model specs loaded. Output axes: " + spec.outputAxes + " - Output data type: " + spec.outputType().getClass().getSimpleName() );
+			final Model model = ModelCreator.fromFiles(
+					MODEL_FOLDER,
+					"weights-torchscript.pt", // TODO get from spec
+					ENGINES_FOLDER,
+					true,
+					false,
+					"torchscript", // TODO get from spec
+					"1.9.1" //  TODO get from spec
+			);
+			System.out.println( "Model loaded: " + model );
+
 
 			/*
 			 * Specify a ROI in the input.
@@ -140,7 +158,7 @@ public class Demo
 			final String rootFolder = "/Users/tinevez/Desktop/DemoModelRunner";
 			final String engine = "torchscript";
 			final String engineVersion = "1.9.1";
-			final String enginesDir = "/Users/tinevez/Development/Mastodon/model-runner-java/engines";
+			final String enginesDir = ENGINES_FOLDER;
 			final String modelFolder = new File( rootFolder, "platynereisemnucleisegmentationboundarymodel_torchscript" ).getAbsolutePath();
 			final String modelSource = new File( modelFolder, "/weights-torchscript.pt" ).getAbsolutePath();
 			final boolean cpu = true;

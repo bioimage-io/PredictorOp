@@ -143,9 +143,8 @@ public class ShapeMath
 
 	public static void main( final String[] args ) throws FileNotFoundException
 	{
-		final String rdfPath = "/Users/tinevez/Desktop/platynereisemnucleisegmentationboundarymodel_torchscript/rdf.yaml";
-		final ModelSpec info = ModelSpec.from( rdfPath );
-		System.out.println( info ); // DEBUG
+		final String rdfPath = "/Users/tinevez/Desktop/platynereisemnucleisegmentationboundarymodel_torchscript/";
+		final ModelSpec info = ModelSpec.fromFolder( rdfPath );
+		System.out.println( info );
 	}
-
 }
