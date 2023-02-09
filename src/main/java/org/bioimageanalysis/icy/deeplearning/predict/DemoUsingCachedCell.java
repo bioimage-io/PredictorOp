@@ -3,6 +3,14 @@ package org.bioimageanalysis.icy.deeplearning.predict;
 import java.io.FileNotFoundException;
 import java.util.List;
 
+import bdv.util.AxisOrder;
+import bdv.util.BdvFunctions;
+import bdv.util.BdvHandle;
+import bdv.util.BdvOptions;
+import bdv.util.BdvStackSource;
+import bdv.util.volatiles.VolatileViews;
+import net.imglib2.Volatile;
+import net.imglib2.type.numeric.ARGBType;
 import org.bioimageanalysis.icy.deeplearning.model.Model;
 
 import ij.IJ;
@@ -43,6 +51,10 @@ public class DemoUsingCachedCell
 			System.out.println( "Image loaded: " + img + " with axes: " + inputAxes + " and type: " + img.firstElement().getClass().getSimpleName() );
 			imp.show();
 
+			final BdvStackSource< I > bdvStackSource = BdvFunctions.show( img, "input", BdvOptions.options().axisOrder( AxisOrder.XYZ ) );
+			final BdvHandle bdvHandle = bdvStackSource.getBdvHandle();
+
+
 			/*
 			 * Load the model specs.
 			 */
@@ -74,15 +86,25 @@ public class DemoUsingCachedCell
 			 * Reshape the output. It is model dependent and is the
 			 * responsibility of the consumer.
 			 */
-			
+			int channel = 0 ;
 			for ( final RandomAccessibleInterval< FloatType > output : outputs )
 			{
-				final Img< FloatType > target = ArrayImgs.floats( output.dimensionsAsLongArray() );
-				RealTypeConverters.copyFromTo( output, target );
-				final ImagePlus impOut = ImageJFunctions.wrap( target, target.toString() );
-				impOut.setDimensions( 1, impOut.getNChannels(), 1 );
-				impOut.show();
+				// show in BDV
+				final RandomAccessibleInterval< Volatile< FloatType > > volatileRandomAccessibleInterval = VolatileViews.wrapAsVolatile( output );
+				final BdvStackSource< Volatile< FloatType > > stackSource = BdvFunctions.show( volatileRandomAccessibleInterval, "ch_" + ( channel++ ), BdvOptions.options().axisOrder( AxisOrder.XYZ ).addTo( bdvHandle ) );
+				stackSource.setDisplayRange( 0, 1 );
+				stackSource.setColor( new ARGBType( ARGBType.rgba( 255, 0, 255, 255 ) ) );
 			}
+
+			// show in ImageJ
+			// doing this at the same time as showing in BDV screws things up
+//			channel = 0 ;
+//			for ( final RandomAccessibleInterval< FloatType > output : outputs )
+//			{
+//				final ImagePlus impOut = ImageJFunctions.wrap( output, "ch_" + channel++ );
+//				impOut.setDimensions( 1, impOut.getNChannels(), 1 );
+//				impOut.show();
+//			}
 		}
 		catch ( final FileNotFoundException e )
 		{
