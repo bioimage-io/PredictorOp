@@ -67,6 +67,13 @@ public class Demo
 			System.out.println( "ROI in output coordinate system: " + reshapedRoi );
 
 			/*
+			 * Show the input cropped by the ROI.
+			 */
+			final ImagePlus crop = ImageJFunctions.wrap( Views.interval( img, roi ), "Cropped" );
+			crop.setDimensions( 1, crop.getNChannels(), 0 );
+			crop.show();
+
+			/*
 			 * Reshape the input to match the specs.
 			 */
 			final RandomAccessibleInterval< I > reshapedInput = AxesMatcher.matchAxes( spec.inputAxes, inputAxes, img );
