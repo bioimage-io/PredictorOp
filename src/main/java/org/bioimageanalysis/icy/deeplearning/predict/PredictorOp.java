@@ -11,10 +11,11 @@ import net.imglib2.Interval;
 import net.imglib2.RandomAccessible;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.converter.RealTypeConverters;
+import net.imglib2.img.ImgFactory;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.real.FloatType;
-import net.imglib2.view.IntervalView;
+import net.imglib2.util.Util;
 import net.imglib2.view.Views;
 
 /**
@@ -35,7 +36,7 @@ public class PredictorOp< I extends RealType< I > & NativeType< I >, O extends R
 
 	private final ModelSpec spec;
 
-	public PredictorOp( final Model model, final RandomAccessible< I > input, final ModelSpec spec)
+	public PredictorOp( final Model model, final RandomAccessible< I > input, final ModelSpec spec )
 	{
 		this.model = model;
 		this.input = input;
@@ -50,9 +51,8 @@ public class PredictorOp< I extends RealType< I > & NativeType< I >, O extends R
 		final Interval addOutputHalo = shapeMath.addOutputHalo( cell );
 		final Interval validInputInterval = shapeMath.getValidInputInterval( addOutputHalo );
 
-		final IntervalView< I > rai = Views.interval( input, validInputInterval );
-		final RandomAccessibleInterval< FloatType > raiFloat = Tensor.createCopyOfRaiInWantedDataType( rai, new FloatType() );
-		// TODO: Carlos: It actually wants an Img, which it should not?!
+		final RandomAccessibleInterval< I > rai = Views.interval( input, validInputInterval );
+		final RandomAccessibleInterval< FloatType > raiFloat = createCopyOfRaiInWantedDataType( rai, new FloatType() );
 		final Tensor< FloatType > inputTensor = Tensor.build( "input0", spec.inputAxes, raiFloat );
 		final List< Tensor< ? > > inputs = new ArrayList<>();
 		inputs.add( inputTensor );
@@ -69,16 +69,39 @@ public class PredictorOp< I extends RealType< I > & NativeType< I >, O extends R
 		{
 			model.runModel( inputs, outputs );
 			@SuppressWarnings( "unchecked" )
-			final
-			RandomAccessibleInterval< FloatType > output = ( RandomAccessibleInterval< FloatType > ) outputs.get( 0 ).getData();
-			// TODO Do dimension massaging with the matcher?
-
-			RealTypeConverters.copyFromTo( output, cell );
+			final RandomAccessibleInterval< FloatType > output = ( RandomAccessibleInterval< FloatType > ) outputs.get( 0 ).getData();
+			RealTypeConverters.copyFromTo( output, Views.zeroMin( cell ) );
 		}
 		catch ( final Exception e )
 		{
 			e.printStackTrace();
 			throw new RuntimeException( e );
 		}
+	}
+
+	/**
+	 * Method that creates a copy of the tensor in the wanted data type.
+	 * Everything is the same or the new tensor (including the name), except the
+	 * data type of the data.
+	 * <p>
+	 * This is the method from Carlos Tensor class, except that I changed it so
+	 * that it can copy from inputs that do not have an origin at 0,0.
+	 * 
+	 * @param input
+	 *            the input to copy from.
+	 * @param type
+	 *            data type of the wanted tensor
+	 * @param <T>
+	 *            the type of pixels in the input.
+	 * @param <R>
+	 *            the type of pixels in the output.
+	 * @return a new CellImg or ArrayImg, with origin at 0,0.
+	 */
+	public static < T extends RealType< T > & NativeType< T >, R extends RealType< R > & NativeType< R > > RandomAccessibleInterval< R > createCopyOfRaiInWantedDataType( final RandomAccessibleInterval< T > input, final R type )
+	{
+		final ImgFactory< R > factory = Util.getArrayOrCellImgFactory( input, type );
+		final RandomAccessibleInterval< R > output = Views.translate( factory.create( input ), input.minAsLongArray() );
+		RealTypeConverters.copyFromTo( input, output );
+		return Views.zeroMin( output );
 	}
 }

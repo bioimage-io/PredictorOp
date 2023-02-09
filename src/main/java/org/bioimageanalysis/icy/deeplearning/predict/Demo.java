@@ -9,6 +9,7 @@ import org.bioimageanalysis.icy.deeplearning.model.Model;
 import ij.IJ;
 import ij.ImageJ;
 import ij.ImagePlus;
+import ij.gui.Roi;
 import net.imglib2.Interval;
 import net.imglib2.RandomAccessible;
 import net.imglib2.RandomAccessibleInterval;
@@ -18,6 +19,7 @@ import net.imglib2.img.ImgFactory;
 import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
+import net.imglib2.util.Intervals;
 import net.imglib2.util.Util;
 import net.imglib2.view.Views;
 
@@ -56,11 +58,13 @@ public class Demo
 			/*
 			 * Specify a ROI in the input.
 			 */
-			final Interval roi = img;
-//					Intervals.createMinMax( 10, 20, 1, 20, 30, 4 );
+//			final Interval roi = img;
+			final Interval roi = Intervals.createMinMax( 50, 50, 10, 150, 150, 20 );
+			imp.setRoi( new Roi( roi.min( 0 ), roi.min( 1 ), roi.dimension( 0 ), roi.dimension( 1 ) ) );
 			System.out.println( "Using a ROI specified in the input coordinate system: " + roi );
 			// Convert it to an output ROI.
 			final Interval reshapedRoi = AxesMatcher.matchInterval( spec.inputAxes, inputAxes, roi );
+			System.out.println( "ROI in output coordinate system: " + reshapedRoi );
 
 			/*
 			 * Reshape the input to match the specs.
@@ -74,10 +78,12 @@ public class Demo
 			final ShapeMath shapeMath = new ShapeMath( spec );
 //			final Interval outputInterval = shapeMath.getOutputInterval( reshapedInput );
 			final Interval outputInterval = shapeMath.getOutputInterval( reshapedRoi );
+			System.out.println( "Output corresponding to ROI in output coordinate system: " + outputInterval );
 			@SuppressWarnings( "unchecked" )
 			final O outputType = ( O ) spec.outputType();
 			final ImgFactory< O > factory = Util.getArrayOrCellImgFactory( outputInterval, outputType );
 			RandomAccessibleInterval< O > output = factory.create( outputInterval );
+			output = Views.translate( output, outputInterval.minAsLongArray() );
 			System.out.println( "Output holder prepared: " + output );
 
 			/*
@@ -86,17 +92,14 @@ public class Demo
 			 */
 			final RandomAccessible< I > extendedInput = Views.extendMirrorSingle( reshapedInput );
 			final PredictorOp< I, O > op = new PredictorOp<>( model, extendedInput, spec );
-			System.out.println( "Op created: " + op ); // DEBUG
-
-			final RandomAccessibleInterval< O > crop = Views.interval( output, roi );
-			System.out.println( "Will run the model on ROI: " + roi );
+			System.out.println( "Op created: " + op );
 
 			/*
 			 * Run the model.
 			 */
 			System.out.println( "Running the model." ); 
 			final long start = System.currentTimeMillis();
-			op.accept( crop );
+			op.accept( output );
 			final long end = System.currentTimeMillis();
 			System.out.println( String.format( "Done in %.1f s.", ( end - start ) / 1000. ) );
 
