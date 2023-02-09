@@ -8,3 +8,16 @@
 /.settings/
 .classpath
 .project
+
+# mac specific files
+.DS_Store
+
+# intellij specific files
+.settings
+.factorypath
+.idea
+target
+*.iml
+*.class
+*~
+*.orig
