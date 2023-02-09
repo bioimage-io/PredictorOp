@@ -22,7 +22,7 @@ import net.imglib2.view.Views;
  * @param <O>
  *            the type of the pixel in the output.
  * @param <I>
- *            the type of the pixels in the input.
+ *            the type of the pixels in the input. // TODO: Change to FloatType
  */
 public class PredictorOp< I extends RealType< I > & NativeType< I >, O extends RealType< O > & NativeType< O > > implements Consumer< RandomAccessibleInterval< O > >
 {
@@ -50,14 +50,15 @@ public class PredictorOp< I extends RealType< I > & NativeType< I >, O extends R
 		final Interval addOutputHalo = shapeMath.addOutputHalo( cell );
 		final Interval validInputInterval = shapeMath.getValidInputInterval( addOutputHalo );
 
-
 		final IntervalView< I > rai = Views.interval( input, validInputInterval );
 		final RandomAccessibleInterval< FloatType > raiFloat = Tensor.createCopyOfRaiInWantedDataType( rai, new FloatType() );
+		// TODO: Carlos: It actually wants an Img, which it should not?!
 		final Tensor< FloatType > inputTensor = Tensor.build( "input0", spec.inputAxes, raiFloat );
 		final List< Tensor< ? > > inputs = new ArrayList<>();
 		inputs.add( inputTensor );
 
 		// Outputs.
+		// TODO: Carlos: Passing in the cell does not really work!
 //		final Tensor< O > outputTensor = Tensor.build( "output0", spec.outputAxes, cell );
 		final Tensor< O > outputTensor = Tensor.buildEmptyTensor( "output0", spec.outputAxes );
 		final List< Tensor< ? > > outputs = new ArrayList<>();

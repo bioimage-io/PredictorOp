@@ -14,27 +14,25 @@ public class ShapeMath
 	// https://github.com/bioimage-io/core-bioimage-io-python/blob/main/bioimageio/core/build_spec/build_model.py
 
 	private final int n;
-	private final int[] inputMinDimensions;
-	private final int[] inputSteps;
-	private final int[] outputHalos;
-	private final int[] offsets;
+	private final long[] inputMinDimensions;
+	private final long[] inputSteps;
+	private final long[] outputHalos;
+	private final long[] offsets;
 	private final double[] scales;
 
 	public ShapeMath( final ModelSpec modelSpec )
 	{
 		n = modelSpec.inputShapeMin.length;
 
-		offsets = new int[ n ];
-		for ( int d = 0; d < n; d++ )
-			offsets[ d ] = (int) ( 2 * modelSpec.outputShapeOffset[ d ] );
+		offsets = Arrays.stream( modelSpec.outputShapeOffset ).mapToLong( x -> ( long ) (2 * x) ).toArray();
 
 		scales = modelSpec.outputShapeScale;
 
-		inputMinDimensions = modelSpec.inputShapeMin;
+		inputMinDimensions = Arrays.stream( modelSpec.inputShapeMin ).mapToLong( x -> x ).toArray();
 
-		outputHalos = modelSpec.outputHalo;
+		outputHalos = Arrays.stream( modelSpec.outputHalo ).mapToLong( x -> x ).toArray();
 
-		inputSteps = modelSpec.inputShapeStep;
+		inputSteps =  Arrays.stream( modelSpec.inputShapeStep ).mapToLong( x -> x ).toArray();
 	}
 
 	public long[] getOutputDimensions( final long[] inputDimensions )
@@ -60,16 +58,14 @@ public class ShapeMath
 
 	public Interval addOutputHalo( final Interval outputInterval )
 	{
-		final long[] border = Arrays.stream( outputHalos )
-				.mapToLong( halo -> ( long ) halo ).toArray();
-		return Intervals.expand( outputInterval, border );
+		return Intervals.expand( outputInterval, outputHalos );
 	}
 
 	public Interval removeOutputHalo( final Interval outputInterval )
 	{
-		final long[] border = Arrays.stream( outputHalos )
-				.mapToLong( halo -> ( long ) -halo ).toArray();
-		return Intervals.expand( outputInterval, border );
+		final long[] negativeHalos = Arrays.stream( outputHalos )
+				.map( halo -> -halo ).toArray();
+		return Intervals.expand( outputInterval, negativeHalos );
 	}
 
 	/**
