@@ -3,9 +3,11 @@ package org.bioimageanalysis.icy.deeplearning.predict;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.imglib2.FinalInterval;
+import net.imglib2.Interval;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.array.ArrayImgs;
-import net.imglib2.type.numeric.integer.UnsignedByteType;
+import net.imglib2.util.Intervals;
 import net.imglib2.view.Views;
 
 public class AxesMatcher
@@ -25,6 +27,8 @@ public class AxesMatcher
 
 		public abstract < T > RandomAccessibleInterval< T > updateRAI( RandomAccessibleInterval< T > rai );
 
+		public abstract Interval updateInterval( Interval output );
+
 		public static DimensionAdded add( final int position, final String dim )
 		{
 			return new DimensionAdded( position, dim );
@@ -39,7 +43,6 @@ public class AxesMatcher
 		{
 			return new DimensionFlip( from, to, dims );
 		}
-
 	}
 
 	public static class DimensionAdded extends DimensionalityModification
@@ -72,6 +75,13 @@ public class AxesMatcher
 		}
 
 		@Override
+		public Interval updateInterval( final Interval input )
+		{
+			final FinalInterval out = Intervals.addDimension( input, 0, 0 );
+			return Intervals.moveAxis( out, out.numDimensions() - 1, position );
+		}
+
+		@Override
 		public String toString()
 		{
 			return "add " + dim + " at " + position;
@@ -96,8 +106,8 @@ public class AxesMatcher
 		@Override
 		public String updateString( final String axes )
 		{
-			final int i1 = Math.max( 0, position - 1 );
-			final int i2 = Math.min( position, axes.length() - 1 );
+			final int i1 = Math.max( 0, position );
+			final int i2 = Math.min( position + 1, axes.length() );
 			return axes.substring( 0, i1 ) + axes.substring( i2 );
 		}
 
@@ -107,6 +117,12 @@ public class AxesMatcher
 			// Default position is the min one.
 			final long pos = inputRAI.min( position );
 			return Views.hyperSlice( inputRAI, position, pos );
+		}
+
+		@Override
+		public Interval updateInterval( final Interval input )
+		{
+			return Intervals.hyperSlice( input, position );
 		}
 
 		@Override
@@ -134,6 +150,12 @@ public class AxesMatcher
 			super( dims );
 			this.from = from;
 			this.to = to;
+		}
+
+		@Override
+		public Interval updateInterval( final Interval input )
+		{
+			return Intervals.permuteAxes( input, from, to );
 		}
 
 		@Override
@@ -203,13 +225,42 @@ public class AxesMatcher
 	 *             to the length of the input axes string. 2/ If one of the two
 	 *             axes string is not made of the chars "btczyx".
 	 */
-	public static final < T > RandomAccessibleInterval< T > matchAxes( String desiredAxes, String inputAxes, final RandomAccessibleInterval< T > input )
+	public static final < T > RandomAccessibleInterval< T > matchAxes( final String desiredAxes, final String inputAxes, final RandomAccessibleInterval< T > input )
 	{
-		/*
-		 * Various checks.
-		 */
+		// Various checks.
 		if ( input.numDimensions() != inputAxes.length() )
 			throw new IllegalArgumentException( "The input image has " + input.numDimensions() + " dimensions but the input axes specifications has " + inputAxes.length() + " characters." );
+
+		// Get mofication sequence.
+		final List< DimensionalityModification > sequence = getSequence( desiredAxes, inputAxes );
+
+		// Execute sequence.
+		RandomAccessibleInterval< T > output = input;
+		for ( final DimensionalityModification change : sequence )
+			output = change.updateRAI( output );
+
+		return output;
+	}
+
+	public static final Interval matchInterval( final String desiredAxes, final String inputAxes, final Interval inputInterval )
+	{
+		// Various checks.
+		if ( inputInterval.numDimensions() != inputAxes.length() )
+			throw new IllegalArgumentException( "The input interval has " + inputInterval.numDimensions() + " dimensions but the input axes specifications has " + inputAxes.length() + " characters." );
+
+		// Get mofication sequence.
+		final List< DimensionalityModification > sequence = getSequence( desiredAxes, inputAxes );
+		
+		// Execute sequence.
+		Interval output = inputInterval;
+		for ( final DimensionalityModification change : sequence )
+			output = change.updateInterval( output );
+
+		return output;
+	}
+
+	private static List< DimensionalityModification > getSequence( final String desiredAxes, String inputAxes )
+	{
 		checkAuthorizedChars( desiredAxes );
 		checkAuthorizedChars( inputAxes );
 
@@ -224,7 +275,7 @@ public class AxesMatcher
 			if ( desiredAxes.indexOf( c ) < 0 )
 			{
 				final DimensionDropped change = DimensionalityModification.remove( i, "" + c );
-				desiredAxes = change.updateString( desiredAxes );
+				inputAxes = change.updateString( inputAxes );
 				sequence.add( change );
 			}
 		}
@@ -258,14 +309,7 @@ public class AxesMatcher
 			sequence.add( change );
 		}
 
-		/*
-		 * Execute sequence.
-		 */
-		RandomAccessibleInterval< T > output = input;
-		for ( final DimensionalityModification change : sequence )
-			output = change.updateRAI( output );
-
-		return output;
+		return sequence;
 	}
 
 	private static void checkAuthorizedChars( final String axes )
@@ -275,13 +319,26 @@ public class AxesMatcher
 				throw new IllegalArgumentException( "Axes string can only contain " + DIM_NAMES + ", but char " + c + " was found" );
 	}
 
+	private static final void demo( final String desiredAxes, final String inputAxes, final RandomAccessibleInterval< ? > input )
+	{
+		System.out.println( "Going from: \t" + inputAxes + " \tto\t " + desiredAxes );
+		System.out.println( input + " \t->\t " + matchAxes( desiredAxes, inputAxes, input ) );
+		System.out.println();
+	}
+
+	private static void demo( final String desiredAxes, final String inputAxes, final Interval input )
+	{
+		System.out.println( "Going from: \t" + inputAxes + " \tto\t " + desiredAxes );
+		System.out.println( input + " \t->\t " + matchInterval( desiredAxes, inputAxes, input ) );
+		System.out.println();
+	}
+
 	public static void main( final String[] args )
 	{
-		final String inputAxes = "xyzt";
 		final String desiredAxes = "bczyx";
-		final RandomAccessibleInterval< UnsignedByteType > img = ArrayImgs.unsignedBytes( 100, 80, 20, 3 );
-		System.out.println( img );
-		final RandomAccessibleInterval< UnsignedByteType > out = matchAxes( desiredAxes, inputAxes, img );
-		System.out.println( out );
+		demo( desiredAxes, "xyz", ArrayImgs.unsignedBytes( 100, 80, 20 ) );
+		demo( desiredAxes, "xyzt", ArrayImgs.unsignedBytes( 100, 80, 20, 3 ) );
+		demo( desiredAxes, "xyz", Intervals.createMinMax( 2, 10, 100, 4, 20, 150 ) );
+		demo( desiredAxes, "xyzt", Intervals.createMinMax( 2, 10, 100, 1, 41, 20, 150, 3 ) );
 	}
 }
