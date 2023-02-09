@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.bioimageanalysis.icy.deeplearning.model.Model;
 import org.yaml.snakeyaml.Yaml;
@@ -45,6 +46,10 @@ public class ModelSpec
 
 	public final double[] outputDataRange;
 
+	public final WeightType weightType;
+
+	public final String weightSource;
+
 	public ModelSpec(
 			final String inputAxes,
 			final String inputDataTypeStr,
@@ -55,7 +60,9 @@ public class ModelSpec
 			final int[] outputHalo,
 			final double[] outputShapeOffset,
 			final double[] outputShapeScale,
-			final double[] outputDataRange )
+			final double[] outputDataRange,
+			final WeightType weightType,
+			final String weightSource )
 	{
 		this.inputAxes = inputAxes;
 		this.inputDataType = inputDataTypeStr;
@@ -67,6 +74,8 @@ public class ModelSpec
 		this.outputShapeOffset = outputShapeOffset;
 		this.outputShapeScale = outputShapeScale;
 		this.outputDataRange = outputDataRange;
+		this.weightType = weightType;
+		this.weightSource = weightSource;
 	}
 
 	/**
@@ -170,12 +179,27 @@ public class ModelSpec
 		return out;
 	}
 
-	public static void main( final String[] args ) throws FileNotFoundException
+	private static Map< String, Object > getInnerMap( final Map< String, Object > map, final String key )
 	{
-		final String rdfPath = "/Users/tinevez/Desktop/platynereisemnucleisegmentationboundarymodel_torchscript/rdf.yaml";
-		final ModelSpec info = from( rdfPath );
-		System.out.println( info );
+		final Object obj = map.get( key );
+		if ( obj instanceof List )
+		{
+			@SuppressWarnings( "rawtypes" )
+			final List list = ( List ) map.get( key );
+			@SuppressWarnings( "unchecked" )
+			final Map< String, Object > out = ( Map< String, Object > ) list.get( 0 );
+			return out;
+		}
+		else
+		{
+			@SuppressWarnings( "unchecked" )
+			final Map< String, Object > out = ( Map< String, Object > ) obj;
+			return out;
+		}
+
 	}
+
+
 
 	public static ModelSpec from( final Model model ) throws FileNotFoundException
 	{
@@ -216,6 +240,15 @@ public class ModelSpec
 		final double[] outputShapeOffset = getDoubleArrayFromMap( outputsShapeMap, "offset" );
 		final double[] outputShapeScale = getDoubleArrayFromMap( outputsShapeMap, "scale" );
 
+		// Weights.
+		final Map< String, Object > weightsMap = getInnerMap( map, "weights" );
+		final Entry< String, Object > weightEntry = weightsMap.entrySet().iterator().next();
+		final String weightFormat = weightEntry.getKey();
+		final WeightType wt = WeightType.fromFormat( weightFormat );
+		@SuppressWarnings( "unchecked" )
+		final Map< String, Object > weightSpecs = ( Map< String, Object > ) weightEntry.getValue();
+		final String weightSource = ( String ) weightSpecs.get( "source" );
+
 		return new ModelSpec(
 				inputAxes,
 				inputDataTypeStr,
@@ -226,7 +259,49 @@ public class ModelSpec
 				outputHalo,
 				outputShapeOffset,
 				outputShapeScale,
-				outputDataRange );
+				outputDataRange,
+				wt,
+				weightSource );
 	}
 
+
+	public enum WeightType
+	{
+		PYTORCH( "pytorch_state_dict" ),
+		TORCHSCRIPT( "torchscript" ),
+		KERAS( "keras_hdf5" ),
+		TENSORTFLOW_JS( "tensorflow_js" ),
+		TENSORTFLOW_BUNDLE( "tensorflow_saved_model_bundle" ),
+		ONNX( "onnx" );
+
+		private final String format;
+
+		WeightType( final String format )
+		{
+			this.format = format;
+		}
+
+		public String getFormat()
+		{
+			return format;
+		}
+
+		public static WeightType fromFormat(final String format)
+		{
+			final String str = format.trim().toLowerCase();
+			for ( final WeightType wt : WeightType.values() )
+			{
+				if (str.equals( wt.format.trim().toLowerCase() ))
+					return wt;
+			}
+			throw new IllegalArgumentException( "Unknown weight type format: " + format );
+		}
+	}
+
+	public static void main( final String[] args ) throws FileNotFoundException
+	{
+		final String rdfPath = "/Users/tinevez/Desktop/DemoModelRunner/platynereisemnucleisegmentationboundarymodel_torchscript/rdf.yaml";
+		final ModelSpec info = from( rdfPath );
+		System.out.println( info );
+	}
 }
