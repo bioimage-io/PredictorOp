@@ -16,6 +16,7 @@ import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.util.Util;
+import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
 
 /**
@@ -70,7 +71,9 @@ public class PredictorOp< I extends RealType< I > & NativeType< I >, O extends R
 			model.runModel( inputs, outputs );
 			@SuppressWarnings( "unchecked" )
 			final RandomAccessibleInterval< FloatType > output = ( RandomAccessibleInterval< FloatType > ) outputs.get( 0 ).getData();
-			RealTypeConverters.copyFromTo( output, Views.zeroMin( cell ) );
+			// Deal with halo.
+			final IntervalView< FloatType > slimOutput = Views.interval( output, shapeMath.removeOutputHalo( output ) );
+			RealTypeConverters.copyFromTo( Views.zeroMin( slimOutput ), Views.zeroMin( cell ) );
 		}
 		catch ( final Exception e )
 		{
