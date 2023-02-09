@@ -63,12 +63,12 @@ public class DemoUsingModelCreator
 			 */
 			final Model model = ModelCreator.fromFiles(
 					MODEL_FOLDER,
-					"weights-torchscript.pt", // TODO get from spec
+					spec.weightSource,
 					ENGINES_FOLDER,
 					true,
 					false,
-					"torchscript", // TODO get from spec
-					"1.9.1" //  TODO get from spec
+					spec.weightType.getFormat(),
+					"1.9.1" // FUCKIT
 			);
 			System.out.println( "Model loaded: " + model );
 
