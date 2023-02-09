@@ -54,16 +54,26 @@ public class Demo
 			System.out.println( "Model specs loaded. Output axes: " + spec.outputAxes + " - Output data type: " + spec.outputType().getClass().getSimpleName() );
 
 			/*
+			 * Specify a ROI in the input.
+			 */
+			final Interval roi = img;
+//					Intervals.createMinMax( 10, 20, 1, 20, 30, 4 );
+			System.out.println( "Using a ROI specified in the input coordinate system: " + roi );
+			// Convert it to an output ROI.
+			final Interval reshapedRoi = AxesMatcher.matchInterval( spec.inputAxes, inputAxes, roi );
+
+			/*
 			 * Reshape the input to match the specs.
 			 */
-			final RandomAccessibleInterval< I > input = AxesMatcher.matchAxes( spec.inputAxes, inputAxes, img );
-			System.out.println( "Input reshaped: " + input );
+			final RandomAccessibleInterval< I > reshapedInput = AxesMatcher.matchAxes( spec.inputAxes, inputAxes, img );
+			System.out.println( "Input reshaped: " + reshapedInput );
 
 			/*
 			 * Prepare holder for results.
 			 */
 			final ShapeMath shapeMath = new ShapeMath( spec );
-			final Interval outputInterval = shapeMath.getOutputInterval( input );
+//			final Interval outputInterval = shapeMath.getOutputInterval( reshapedInput );
+			final Interval outputInterval = shapeMath.getOutputInterval( reshapedRoi );
 			@SuppressWarnings( "unchecked" )
 			final O outputType = ( O ) spec.outputType();
 			final ImgFactory< O > factory = Util.getArrayOrCellImgFactory( outputInterval, outputType );
@@ -71,13 +81,22 @@ public class Demo
 			System.out.println( "Output holder prepared: " + output );
 
 			/*
+			 * Instantiates the op on an extended version of the input,
+			 * specifying the model.
+			 */
+			final RandomAccessible< I > extendedInput = Views.extendMirrorSingle( reshapedInput );
+			final PredictorOp< I, O > op = new PredictorOp<>( model, extendedInput, spec );
+			System.out.println( "Op created: " + op ); // DEBUG
+
+			final RandomAccessibleInterval< O > crop = Views.interval( output, roi );
+			System.out.println( "Will run the model on ROI: " + roi );
+
+			/*
 			 * Run the model.
 			 */
-			final RandomAccessible<I> extendedInput = Views.extendMirrorSingle( input );
-			final PredictorOp< I, O > op = new PredictorOp<>( model, extendedInput, spec );
 			System.out.println( "Running the model." ); 
 			final long start = System.currentTimeMillis();
-			op.accept( output );
+			op.accept( crop );
 			final long end = System.currentTimeMillis();
 			System.out.println( String.format( "Done in %.1f s.", ( end - start ) / 1000. ) );
 
