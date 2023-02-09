@@ -21,20 +21,14 @@ import net.imglib2.util.Intervals;
 import net.imglib2.util.Util;
 import net.imglib2.view.Views;
 
+import static org.bioimageanalysis.icy.deeplearning.predict.Resources.ENGINES_FOLDER;
+import static org.bioimageanalysis.icy.deeplearning.predict.Resources.EXAMPLE_IMAGE;
+import static org.bioimageanalysis.icy.deeplearning.predict.Resources.MODEL_FOLDER;
+import static org.bioimageanalysis.icy.deeplearning.predict.Resources.USE_CPU;
+import static org.bioimageanalysis.icy.deeplearning.predict.Resources.USE_GPU;
+
 public class DemoUsingModelCreator
 {
-	// J-Y
-	public static final String MODEL_FOLDER = "/Users/tinevez/Desktop/DemoModelRunner/platynereisemnucleisegmentationboundarymodel_torchscript";
-	public static final String ENGINES_FOLDER = "/Users/tinevez/Development/Mastodon/model-runner-java/engines";
-	public static final String EXAMPLE_IMAGE = "/Users/tinevez/Desktop/DemoModelRunner/sample_input_0.tif";
-	public static final boolean USE_CPU = true;
-	public static final boolean USE_GPU = false;
-
-	// TISCHI
-
-
-	// TOBY
-
 
 	public static < I extends RealType< I > & NativeType< I >, O extends RealType< O > & NativeType< O > > void main( final String[] args ) throws Exception
 	{
