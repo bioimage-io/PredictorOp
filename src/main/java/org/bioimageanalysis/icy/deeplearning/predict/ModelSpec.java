@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -50,6 +51,8 @@ public class ModelSpec
 
 	public final String weightSource;
 
+	public final String weightVersion;
+
 	public ModelSpec(
 			final String inputAxes,
 			final String inputDataTypeStr,
@@ -62,7 +65,8 @@ public class ModelSpec
 			final double[] outputShapeScale,
 			final double[] outputDataRange,
 			final WeightType weightType,
-			final String weightSource )
+			final String weightSource,
+			final String weightVersion )
 	{
 		this.inputAxes = inputAxes;
 		this.inputDataType = inputDataTypeStr;
@@ -76,6 +80,7 @@ public class ModelSpec
 		this.outputDataRange = outputDataRange;
 		this.weightType = weightType;
 		this.weightSource = weightSource;
+		this.weightVersion = weightVersion;
 	}
 
 	/**
@@ -211,6 +216,32 @@ public class ModelSpec
 		return fromFile( rdfFile.getAbsolutePath() );
 	}
 
+	@SuppressWarnings( "rawtypes" )
+	private static final int[][] getShapeArrays( final Map< String, Object > inputsMap )
+	{
+		final Object obj = inputsMap.get( "shape" );
+		if ( obj instanceof List && ( ( List ) obj ).get( 0 ) instanceof Integer )
+		{
+			@SuppressWarnings( "unchecked" )
+			final List< Integer > explicitShape = ( List< Integer > ) obj;
+			final int[] min = new int[ explicitShape.size() ];
+			final int[] step = new int[ explicitShape.size() ];
+			for ( int d = 0; d < step.length; d++ )
+			{
+				min[ d ] = explicitShape.get( d );
+				step[ d ] = 0;
+			}
+			return new int[][] { min, step };
+		}
+		else
+		{
+			final Map< String, Object > inputsShapeMap = getInnerMap( inputsMap, "shape" );
+			final int[] min = getIntArrayFromMap( inputsShapeMap, "min" );
+			final int[] step = getIntArrayFromMap( inputsShapeMap, "step" );
+			return new int[][] { min, step };
+		}
+	}
+
 	public static ModelSpec fromFile( final String rdfPath ) throws FileNotFoundException
 	{
 		final Yaml yaml = new Yaml();
@@ -226,10 +257,9 @@ public class ModelSpec
 		final String inputAxes = ( String ) inputsMap.get( "axes" );
 		final String inputDataTypeStr = ( String ) inputsMap.get( "data_type" );
 
-		@SuppressWarnings( "unchecked" )
-		final Map< String, Object > inputsShapeMap = ( Map< String, Object > ) inputsMap.get( "shape" );
-		final int[] inputShapeMin = getIntArrayFromMap( inputsShapeMap, "min" );
-		final int[] inputShapeStep = getIntArrayFromMap( inputsShapeMap, "step" );
+		final int[][] shapeArrays = getShapeArrays( inputsMap );
+		final int[] inputShapeMin = shapeArrays[ 0 ];
+		final int[] inputShapeStep = shapeArrays[ 1 ];
 
 		// Outputs.
 		@SuppressWarnings( "unchecked" )
@@ -237,7 +267,7 @@ public class ModelSpec
 		final String outputAxes = ( String ) outputsMap.get( "axes" );
 		final String outputDataTypeStr = ( String ) outputsMap.get( "data_type" );
 		final double[] outputDataRange = getDoubleArrayFromMap( outputsMap, "data_range" );
-		final int[] outputHalo = getIntArrayFromMap( outputsMap, "halo" );
+		final int[] outputHalo = getHalo( outputsMap, outputAxes.length() );
 		@SuppressWarnings( "unchecked" )
 		final Map< String, Object > outputsShapeMap = ( Map< String, Object > ) outputsMap.get( "shape" );
 		final double[] outputShapeOffset = getDoubleArrayFromMap( outputsShapeMap, "offset" );
@@ -251,6 +281,7 @@ public class ModelSpec
 		@SuppressWarnings( "unchecked" )
 		final Map< String, Object > weightSpecs = ( Map< String, Object > ) weightEntry.getValue();
 		final String weightSource = ( String ) weightSpecs.get( "source" );
+		final String weightVersion = wt.tryToReadVersion( weightSpecs );
 
 		return new ModelSpec(
 				inputAxes,
@@ -264,9 +295,20 @@ public class ModelSpec
 				outputShapeScale,
 				outputDataRange,
 				wt,
-				weightSource );
+				weightSource,
+				weightVersion );
 	}
 
+
+	private static int[] getHalo( final Map< String, Object > outputsMap, final int nDims )
+	{
+		if ( outputsMap.containsKey( "halo" ) )
+			return getIntArrayFromMap( outputsMap, "halo" );
+
+		final int[] defaultHalo = new int[ nDims ];
+		Arrays.fill( defaultHalo, 0 );
+		return defaultHalo;
+	}
 
 	public enum WeightType
 	{
@@ -282,6 +324,25 @@ public class ModelSpec
 		WeightType( final String format )
 		{
 			this.format = format;
+		}
+
+		String tryToReadVersion( final Map< String, Object > weightSpecs )
+		{
+			// This field is optional so....
+			switch ( this )
+			{
+			case ONNX:
+				return ( String ) weightSpecs.getOrDefault( "opset_version", "" );
+			case PYTORCH:
+			case TORCHSCRIPT:
+				return ( String ) weightSpecs.getOrDefault( "pytorch_version", "" );
+			case KERAS:
+			case TENSORTFLOW_BUNDLE:
+			case TENSORTFLOW_JS:
+				return ( String ) weightSpecs.getOrDefault( "tensorflow_version", "" );
+			default:
+				return "";
+			}
 		}
 
 		public String getFormat()
@@ -303,7 +364,7 @@ public class ModelSpec
 
 	public static void main( final String[] args ) throws FileNotFoundException
 	{
-		final String rdfPath = "/Users/tinevez/Desktop/DemoModelRunner/platynereisemnucleisegmentationboundarymodel_torchscript/";
+		final String rdfPath = Resources.MODEL_FOLDER;
 		final ModelSpec info = fromFolder( rdfPath );
 		System.out.println( info );
 	}
