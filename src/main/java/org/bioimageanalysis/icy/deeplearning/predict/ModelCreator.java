@@ -1,13 +1,13 @@
 package org.bioimageanalysis.icy.deeplearning.predict;
 
-import org.bioimageanalysis.icy.deeplearning.engine.EngineInfo;
-import org.bioimageanalysis.icy.deeplearning.model.Model;
-
 import java.io.File;
+
+import io.bioimage.modelrunner.engine.EngineInfo;
+import io.bioimage.modelrunner.model.Model;
 
 public class ModelCreator
 {
-	public static Model fromFiles( String modelDirectory, String weightsFileName, String engineDirectory, boolean cpu, boolean gpu, String engine, String engineVersion ) throws Exception
+	public static Model fromFiles( final String modelDirectory, final String weightsFileName, final String engineDirectory, final boolean cpu, final boolean gpu, final String engine, final String engineVersion ) throws Exception
 	{
 		final EngineInfo engineInfo =
 				EngineInfo.defineDLEngine(

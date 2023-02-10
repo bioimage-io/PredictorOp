@@ -4,9 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-import org.bioimageanalysis.icy.deeplearning.model.Model;
-import org.bioimageanalysis.icy.deeplearning.tensor.Tensor;
-
+import io.bioimage.modelrunner.model.Model;
+import io.bioimage.modelrunner.tensor.Tensor;
 import net.imglib2.Interval;
 import net.imglib2.RandomAccessible;
 import net.imglib2.RandomAccessibleInterval;
@@ -20,7 +19,7 @@ import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
 
 /**
- * 
+ *
  * @param <O>
  *            the type of the pixel in the output.
  * @param <I>
@@ -89,7 +88,7 @@ public class PredictorOp< I extends RealType< I > & NativeType< I >, O extends R
 	 * <p>
 	 * This is the method from Carlos Tensor class, except that I changed it so
 	 * that it can copy from inputs that do not have an origin at 0,0.
-	 * 
+	 *
 	 * @param input
 	 *            the input to copy from.
 	 * @param type

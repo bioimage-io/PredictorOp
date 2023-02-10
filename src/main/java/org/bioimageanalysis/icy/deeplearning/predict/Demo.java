@@ -3,13 +3,12 @@ package org.bioimageanalysis.icy.deeplearning.predict;
 import java.io.File;
 import java.io.FileNotFoundException;
 
-import org.bioimageanalysis.icy.deeplearning.engine.EngineInfo;
-import org.bioimageanalysis.icy.deeplearning.model.Model;
-
 import ij.IJ;
 import ij.ImageJ;
 import ij.ImagePlus;
 import ij.gui.Roi;
+import io.bioimage.modelrunner.engine.EngineInfo;
+import io.bioimage.modelrunner.model.Model;
 import net.imglib2.Interval;
 import net.imglib2.RandomAccessible;
 import net.imglib2.RandomAccessibleInterval;
@@ -25,7 +24,6 @@ import net.imglib2.view.Views;
 
 public class Demo
 {
-
 	public static < I extends RealType< I > & NativeType< I >, O extends RealType< O > & NativeType< O > > void main( final String[] args )
 	{
 		try
@@ -104,7 +102,7 @@ public class Demo
 			/*
 			 * Run the model.
 			 */
-			System.out.println( "Running the model." ); 
+			System.out.println( "Running the model." );
 			final long start = System.currentTimeMillis();
 			op.accept( output );
 			final long end = System.currentTimeMillis();
@@ -119,7 +117,7 @@ public class Demo
 			output = Views.hyperSlice( output, 0, 0 );
 			final RandomAccessibleInterval< O > ch1 = Views.hyperSlice( output, 0, 0 );
 			final RandomAccessibleInterval< O > ch2 = Views.hyperSlice( output, 0, 1 );
-			
+
 			final ImagePlus imp1 = ImageJFunctions.wrap( ch1, "Output 1" );
 			imp1.setDimensions( 1, imp1.getNChannels(), 1 );
 			imp1.show();

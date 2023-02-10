@@ -8,9 +8,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.bioimageanalysis.icy.deeplearning.model.Model;
 import org.yaml.snakeyaml.Yaml;
 
+import io.bioimage.modelrunner.model.Model;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.ByteType;
@@ -80,7 +80,7 @@ public class ModelSpec
 
 	/**
 	 * Returns an ImgLib2 type object matching the output pixel type.
-	 * 
+	 *
 	 * @param <T>
 	 *            the type.
 	 * @return the type.
