@@ -9,6 +9,7 @@ import static org.bioimageanalysis.icy.deeplearning.predict.Resources.USE_GPU;
 import java.io.FileNotFoundException;
 import java.util.List;
 
+import bdv.cache.SharedQueue;
 import bdv.util.AxisOrder;
 import bdv.util.BdvFunctions;
 import bdv.util.BdvHandle;
@@ -28,7 +29,6 @@ import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.real.FloatType;
-
 
 public class DemoUsingCachedCell
 {
@@ -80,6 +80,7 @@ public class DemoUsingCachedCell
 			final List< RandomAccessibleInterval< FloatType > > outputs = PredictionCachedCellImgCreator.createLazyXYZOutputImages(
 					RealTypeConverters.convert( img, new FloatType() ), model, spec );
 
+			final SharedQueue queue = new SharedQueue(10);
 			/*
 			 * Reshape the output. It is model dependent and is the
 			 * responsibility of the consumer.
@@ -88,7 +89,7 @@ public class DemoUsingCachedCell
 			for ( final RandomAccessibleInterval< FloatType > output : outputs )
 			{
 				// show in BDV
-				final RandomAccessibleInterval< Volatile< FloatType > > volatileRandomAccessibleInterval = VolatileViews.wrapAsVolatile( output );
+				final RandomAccessibleInterval< Volatile< FloatType > > volatileRandomAccessibleInterval = VolatileViews.wrapAsVolatile( output, queue );
 				final BdvStackSource< Volatile< FloatType > > stackSource = BdvFunctions.show( volatileRandomAccessibleInterval, "ch_" + ( channel++ ), BdvOptions.options().axisOrder( AxisOrder.XYZ ).addTo( bdvHandle ) );
 				stackSource.setDisplayRange( 0, 1 );
 				stackSource.setColor( new ARGBType( ARGBType.rgba( 255, 0, 255, 255 ) ) );
