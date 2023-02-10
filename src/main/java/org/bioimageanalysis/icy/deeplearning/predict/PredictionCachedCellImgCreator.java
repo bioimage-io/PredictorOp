@@ -30,11 +30,6 @@ public class PredictionCachedCellImgCreator
 
 		final ShapeMath shapeMath = new ShapeMath( modelSpec );
 
-
-		// This returns the correct result
-		//final int[] outputCellDimensions = Arrays.stream( modelInput.dimensionsAsLongArray() ).mapToInt( x -> ( int ) x ).toArray();
-
-		// This does not:
 		// TODO remove the long mapping if we change it in the modelSpec
 		final int[] outputCellDimensions =	Arrays.stream(
 						shapeMath.getOutputDimensions(
