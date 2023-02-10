@@ -1,8 +1,12 @@
 package org.bioimageanalysis.icy.deeplearning.predict;
 
-import java.io.FileNotFoundException;
+import static org.bioimageanalysis.icy.deeplearning.predict.Resources.ENGINES_FOLDER;
+import static org.bioimageanalysis.icy.deeplearning.predict.Resources.EXAMPLE_IMAGE;
+import static org.bioimageanalysis.icy.deeplearning.predict.Resources.MODEL_FOLDER;
+import static org.bioimageanalysis.icy.deeplearning.predict.Resources.USE_CPU;
+import static org.bioimageanalysis.icy.deeplearning.predict.Resources.USE_GPU;
 
-import org.bioimageanalysis.icy.deeplearning.model.Model;
+import org.ojalgo.optimisation.Optimisation.Model;
 
 import ij.IJ;
 import ij.ImageJ;
@@ -17,15 +21,8 @@ import net.imglib2.img.ImgFactory;
 import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
-import net.imglib2.util.Intervals;
 import net.imglib2.util.Util;
 import net.imglib2.view.Views;
-
-import static org.bioimageanalysis.icy.deeplearning.predict.Resources.ENGINES_FOLDER;
-import static org.bioimageanalysis.icy.deeplearning.predict.Resources.EXAMPLE_IMAGE;
-import static org.bioimageanalysis.icy.deeplearning.predict.Resources.MODEL_FOLDER;
-import static org.bioimageanalysis.icy.deeplearning.predict.Resources.USE_CPU;
-import static org.bioimageanalysis.icy.deeplearning.predict.Resources.USE_GPU;
 
 public class DemoUsingModelCreator
 {
@@ -43,7 +40,7 @@ public class DemoUsingModelCreator
 			final ImagePlus imp = IJ.openImage( imgPath );
 			final Img< I > img = ImagePlusAdapter.wrap( imp );
 			// Could be determined from the input file.
-			final String inputAxes = "xyz";
+			final String inputAxes = getImageAxesFrom( imp );
 			System.out.println( "Image loaded: " + img + " with axes: " + inputAxes + " and type: " + img.firstElement().getClass().getSimpleName() );
 			imp.show();
 
@@ -56,6 +53,13 @@ public class DemoUsingModelCreator
 			/*
 			 * Create the model.
 			 */
+			final String weightVersion = "1.15"; // spec.weightVersion;
+			if ( weightVersion.trim().isEmpty() )
+			{
+				System.out.println( "Could not find the weigth version in the RDF file. Please specify it manually in the code." );
+				return;
+			}
+			System.out.println( "Trying to load the model" );
 			final Model model = ModelCreator.fromFiles(
 					MODEL_FOLDER,
 					spec.weightSource,
@@ -63,7 +67,7 @@ public class DemoUsingModelCreator
 					USE_CPU,
 					USE_GPU,
 					spec.weightType.getFormat(),
-					"1.9.1" // FUCKIT
+					weightVersion.trim()
 			);
 			System.out.println( "Model loaded: " + model );
 
@@ -127,22 +131,49 @@ public class DemoUsingModelCreator
 			 * Reshape the output. It is model dependent and is the
 			 * responsibility of the consumer.
 			 */
-			output = Views.permute( output, 2, 4 );
-			output = Views.hyperSlice( output, 0, 0 );
-			final RandomAccessibleInterval< O > ch1 = Views.hyperSlice( output, 0, 0 );
-			final RandomAccessibleInterval< O > ch2 = Views.hyperSlice( output, 0, 1 );
-			
-			final ImagePlus imp1 = ImageJFunctions.wrap( ch1, "Output 1" );
-			imp1.setDimensions( 1, imp1.getNChannels(), 1 );
-			imp1.show();
-			final ImagePlus imp2 = ImageJFunctions.wrap( ch2, "Output 2" );
-			imp2.setDimensions( 1, imp2.getNChannels(), 1 );
-			imp2.show();
+//			postProcessBCZYXWith2Chan( output );
+			postProcessBYXC( output );
 		}
-		catch ( final FileNotFoundException e )
+		catch ( final Exception e )
 		{
 			e.printStackTrace();
 		}
+	}
+
+	protected static < O extends RealType< O > & NativeType< O > > void postProcessBYXC( RandomAccessibleInterval< O > output )
+	{
+		output = Views.hyperSlice( output, 0, 0 );
+		output = Views.permute( output, 0, 1 );
+		final ImagePlus imp = ImageJFunctions.wrap( output, "Output" );
+		imp.setDimensions( 1, imp.getNChannels(), 1 );
+		imp.show();
+	}
+
+	protected static < O extends RealType< O > & NativeType< O > > void postProcessBCZYXWith2Chan( RandomAccessibleInterval< O > output )
+	{
+		output = Views.permute( output, 2, 4 );
+		output = Views.hyperSlice( output, 0, 0 );
+		final RandomAccessibleInterval< O > ch1 = Views.hyperSlice( output, 0, 0 );
+		final RandomAccessibleInterval< O > ch2 = Views.hyperSlice( output, 0, 1 );
+
+		final ImagePlus imp1 = ImageJFunctions.wrap( ch1, "Output 1" );
+		imp1.setDimensions( 1, imp1.getNChannels(), 1 );
+		imp1.show();
+		final ImagePlus imp2 = ImageJFunctions.wrap( ch2, "Output 2" );
+		imp2.setDimensions( 1, imp2.getNChannels(), 1 );
+		imp2.show();
+	}
+
+	private static String getImageAxesFrom( final ImagePlus imp )
+	{
+		String str = "xy";
+		if ( imp.getNChannels() > 1 )
+			str += "c";
+		if ( imp.getNSlices() > 1 )
+			str += "z";
+		if ( imp.getNFrames() > 1 )
+			str += "t";
+		return str;
 	}
 }
 
