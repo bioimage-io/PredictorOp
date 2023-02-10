@@ -4,8 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.bioimageanalysis.icy.deeplearning.model.Model;
-
+import io.bioimage.modelrunner.model.Model;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgFactory;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgOptions;

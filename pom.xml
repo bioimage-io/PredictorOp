@@ -100,9 +100,9 @@
 
 		<dependency>
 			<!-- Deal with DL models. Later: update to recent version. -->
-			<groupId>org.bioimageanalysis.icy</groupId>
-			<artifactId>dl-model-runner</artifactId>
-			<version>0.0.1</version>
+			<groupId>io.bioimage</groupId>
+			<artifactId>dl-modelrunner</artifactId>
+			<version>0.1.1-SNAPSHOT</version>
 		</dependency>
 
 		<!-- Used to parse the RDF model file. -->

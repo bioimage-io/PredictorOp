@@ -1,13 +1,18 @@
 package org.bioimageanalysis.icy.deeplearning.predict;
 
-import java.io.FileNotFoundException;
+import static org.bioimageanalysis.icy.deeplearning.predict.Resources.ENGINES_FOLDER;
+import static org.bioimageanalysis.icy.deeplearning.predict.Resources.EXAMPLE_IMAGE;
+import static org.bioimageanalysis.icy.deeplearning.predict.Resources.MODEL_FOLDER;
+import static org.bioimageanalysis.icy.deeplearning.predict.Resources.USE_CPU;
+import static org.bioimageanalysis.icy.deeplearning.predict.Resources.USE_GPU;
 
-import org.bioimageanalysis.icy.deeplearning.model.Model;
+import java.io.FileNotFoundException;
 
 import ij.IJ;
 import ij.ImageJ;
 import ij.ImagePlus;
 import ij.gui.Roi;
+import io.bioimage.modelrunner.model.Model;
 import net.imglib2.Interval;
 import net.imglib2.RandomAccessible;
 import net.imglib2.RandomAccessibleInterval;
@@ -17,15 +22,8 @@ import net.imglib2.img.ImgFactory;
 import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
-import net.imglib2.util.Intervals;
 import net.imglib2.util.Util;
 import net.imglib2.view.Views;
-
-import static org.bioimageanalysis.icy.deeplearning.predict.Resources.ENGINES_FOLDER;
-import static org.bioimageanalysis.icy.deeplearning.predict.Resources.EXAMPLE_IMAGE;
-import static org.bioimageanalysis.icy.deeplearning.predict.Resources.MODEL_FOLDER;
-import static org.bioimageanalysis.icy.deeplearning.predict.Resources.USE_CPU;
-import static org.bioimageanalysis.icy.deeplearning.predict.Resources.USE_GPU;
 
 public class DemoUsingModelCreator
 {
@@ -63,7 +61,7 @@ public class DemoUsingModelCreator
 					USE_CPU,
 					USE_GPU,
 					spec.weightType.getFormat(),
-					"1.9.1" // FUCKIT
+					"1.13.0" // FUCKIT
 			);
 			System.out.println( "Model loaded: " + model );
 
@@ -117,7 +115,7 @@ public class DemoUsingModelCreator
 			/*
 			 * Run the model.
 			 */
-			System.out.println( "Running the model." ); 
+			System.out.println( "Running the model." );
 			final long start = System.currentTimeMillis();
 			op.accept( output );
 			final long end = System.currentTimeMillis();
@@ -131,7 +129,7 @@ public class DemoUsingModelCreator
 			output = Views.hyperSlice( output, 0, 0 );
 			final RandomAccessibleInterval< O > ch1 = Views.hyperSlice( output, 0, 0 );
 			final RandomAccessibleInterval< O > ch2 = Views.hyperSlice( output, 0, 1 );
-			
+
 			final ImagePlus imp1 = ImageJFunctions.wrap( ch1, "Output 1" );
 			imp1.setDimensions( 1, imp1.getNChannels(), 1 );
 			imp1.show();

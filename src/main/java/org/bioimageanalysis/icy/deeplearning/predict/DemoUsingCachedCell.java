@@ -1,5 +1,11 @@
 package org.bioimageanalysis.icy.deeplearning.predict;
 
+import static org.bioimageanalysis.icy.deeplearning.predict.Resources.ENGINES_FOLDER;
+import static org.bioimageanalysis.icy.deeplearning.predict.Resources.EXAMPLE_IMAGE;
+import static org.bioimageanalysis.icy.deeplearning.predict.Resources.MODEL_FOLDER;
+import static org.bioimageanalysis.icy.deeplearning.predict.Resources.USE_CPU;
+import static org.bioimageanalysis.icy.deeplearning.predict.Resources.USE_GPU;
+
 import java.io.FileNotFoundException;
 import java.util.List;
 
@@ -9,28 +15,20 @@ import bdv.util.BdvHandle;
 import bdv.util.BdvOptions;
 import bdv.util.BdvStackSource;
 import bdv.util.volatiles.VolatileViews;
-import net.imglib2.Volatile;
-import net.imglib2.type.numeric.ARGBType;
-import org.bioimageanalysis.icy.deeplearning.model.Model;
-
 import ij.IJ;
 import ij.ImageJ;
 import ij.ImagePlus;
+import io.bioimage.modelrunner.model.Model;
 import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.Volatile;
 import net.imglib2.converter.RealTypeConverters;
 import net.imglib2.img.ImagePlusAdapter;
 import net.imglib2.img.Img;
-import net.imglib2.img.array.ArrayImgs;
-import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.type.NativeType;
+import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.real.FloatType;
 
-import static org.bioimageanalysis.icy.deeplearning.predict.Resources.ENGINES_FOLDER;
-import static org.bioimageanalysis.icy.deeplearning.predict.Resources.EXAMPLE_IMAGE;
-import static org.bioimageanalysis.icy.deeplearning.predict.Resources.MODEL_FOLDER;
-import static org.bioimageanalysis.icy.deeplearning.predict.Resources.USE_CPU;
-import static org.bioimageanalysis.icy.deeplearning.predict.Resources.USE_GPU;
 
 public class DemoUsingCachedCell
 {
@@ -71,14 +69,14 @@ public class DemoUsingCachedCell
 					USE_CPU,
 					USE_GPU,
 					spec.weightType.getFormat(),
-					"1.9.1" // FUCKIT
+					"1.13.0" // FUCKIT
 			);
 			System.out.println( "Model loaded: " + model );
 
 			/*
 			 * Use the cached cell creator.
 			 */
-			System.out.println( "Running the model." ); 
+			System.out.println( "Running the model." );
 			final List< RandomAccessibleInterval< FloatType > > outputs = PredictionCachedCellImgCreator.createLazyXYZOutputImages(
 					RealTypeConverters.convert( img, new FloatType() ), model, spec );
 
